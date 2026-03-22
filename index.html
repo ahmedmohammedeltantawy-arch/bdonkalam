@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لعبة بدون كلام - النسخة المصرية</title>
+    <style>
+        :root {
+            --primary-color: #ff6b6b;
+            --secondary-color: #4ecdc4;
+            --dark-color: #292f36;
+            --light-color: #f7fff7;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--dark-color);
+            color: var(--light-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .display-area {
+            background-color: var(--light-color);
+            color: var(--dark-color);
+            padding: 40px 20px;
+            border-radius: 15px;
+            margin: 30px 0;
+            min-height: 150px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.2);
+        }
+
+        #category-label {
+            font-size: 1.2em;
+            color: #666;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        #word-display {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin: 0;
+        }
+
+        .buttons-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        button {
+            background-color: var(--secondary-color);
+            color: var(--dark-color);
+            border: none;
+            padding: 15px;
+            font-size: 1.2em;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: #45b7af;
+            transform: translateY(-3px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .random-btn {
+            background-color: var(--primary-color);
+            color: white;
+            grid-column: 1 / -1;
+        }
+
+        .random-btn:hover {
+            background-color: #fa5252;
+        }
+
+        .timer-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+            background-color: rgba(0,0,0,0.2);
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        #timer-display {
+            font-size: 2.5em;
+            font-weight: bold;
+            font-family: monospace;
+            color: var(--secondary-color);
+            width: 100px;
+        }
+
+        .timer-btn {
+            background-color: #fca311;
+            padding: 10px 20px;
+            font-size: 1em;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>لعبة بدون كلام 🎭</h1>
+        <p>اختار الفئة وابدأ التمثيل قبل ما الوقت يخلص!</p>
+
+        <div class="display-area">
+            <div id="category-label">...</div>
+            <div id="word-display">مستعد؟</div>
+        </div>
+
+        <div class="buttons-grid">
+            <button onclick="generateWord('movie')">🎬 فيلم</button>
+            <button onclick="generateWord('series')">📺 مسلسل</button>
+            <button onclick="generateWord('play')">🎭 مسرحية</button>
+            <button class="random-btn" onclick="generateWord('random')">🎲 اختيار عشوائي (حظك نصيبك)</button>
+        </div>
+
+        <div class="timer-section">
+            <button class="timer-btn" onclick="startTimer()">▶️ ابدأ الوقت</button>
+            <div id="timer-display">01:00</div>
+            <button class="timer-btn" style="background-color: #e63946;" onclick="resetTimer()">🔄 إعادة</button>
+        </div>
+    </div>
+
+    <script>
+        // قاعدة البيانات الكبيرة للأفلام
+        const movies = [
+            "الإرهاب والكباب", "عسل أسود", "الناظر", "صعيدي في الجامعة الأمريكية", "الكيف", 
+            "اللعب مع الكبار", "طيور الظلام", "إشاعة حب", "الزوجة 13", "ابن حميدو", 
+            "الكرنك", "الباب المفتوح", "عمارة يعقوبيان", "الجزيرة", "مافيا", 
+            "تيتو", "همام في أمستردام", "فول الصين العظيم", "غبي منه فيه", "كدة رضا", 
+            "أسف على الإزعاج", "إكس لارج", "الفيل الأزرق", "تراب الماس", "الممر", 
+            "كيرة والجن", "غزل البنات", "دعاء الكروان", "الأرض", "شيء من الخوف", 
+            "حنفي الأبهة", "سلام يا صاحبي", "شمس الزناتي", "بوحة", "اللمبي", 
+            "اللي بالي بالك", "ولاد رزق", "نادي الرجال السري", "وقفة رجالة", "الكيت كات",
+            "أرض الخوف", "البحث عن فضيحة", "عصابة حمادة وتوتو", "بطل من ورق", "يا رب ولد",
+            "البيضة والحجر", "جري الوحوش", "العار", "شمس الزناتي", "الهروب",
+            "حرب كرموز", "كازابلانكا", "واحد من الناس", "خارج على القانون", "جعلتني مجرما",
+            "عسكر في المعسكر", "ميدو مشاكل", "الناظر صلاح الدين", "السفارة في العمارة", "التجربة الدنماركية"
+        ];
+
+        // قاعدة البيانات الكبيرة للمسلسلات
+        const series = [
+            "ليالي الحلمية", "رأفت الهجان", "لن أعيش في جلباب أبي", "المال والبنون", "ذئاب الجبل", 
+            "الضوء الشارد", "يوميات ونيس", "عائلة الحاج متولي", "حديث الصباح والمساء", "زيزينيا", 
+            "البخيل وأنا", "أرابيسك", "بوابة الحلواني", "العائلة", "الليل وآخره", 
+            "العصيان", "يتربى في عزو", "أوبرا عايدة", "دموع في عيون وقحة", "الرجل العناب", 
+            "الكبير أوي", "سجن النسا", "تحت السيطرة", "نيللي وشريهان", "بـ 100 وش", 
+            "الاختيار", "راجعين يا هوى", "موضوع عائلي", "حالة خاصة", "الحشاشين", 
+            "العتاولة", "جعفر العمدة", "جزيرة غمام", "أفراح القبة", "واحة الغروب",
+            "جراند أوتيل", "طريقي", "الوصية", "الصفارة", "بالطو",
+            "ريفو", "الغرفة 207", "ما وراء الطبيعة", "سابع جار", "أبو العروسة",
+            "عايزة أتجوز", "تامر وشوقية", "راجل وست ستات", "البحر بيضحك ليه", "خالتي صفية والدير"
+        ];
+
+        // قاعدة البيانات الكبيرة للمسرحيات
+        const plays = [
+            "مدرسة المشاغبين", "العيال كبرت", "المتزوجون", "ريا وسكينة", "الواد سيد الشغال", 
+            "الزعيم", "شاهد ما شافش حاجة", "بودي جارد", "سك على بناتك", "إنها حقا عائلة محترمة", 
+            "الجوكر", "تخاريف", "لعبة الست", "كارمن", "سكة السلامة", 
+            "عفروتو", "حزمني يا", "كدة أوكيه", "ألابندا", "طرائيعو", 
+            "عش المجانين", "قانون الحب", "علشان خاطر عيونك", "هالة حبيبتي", "شارع محمد علي",
+            "الهمجي", "وجهة نظر", "ماما أمريكا", "تار بايت", "اخطف واجري",
+            "عائلة ونيس", "لعبة الست", "سيدتي الجميلة", "موسيقى في الحي الشرقي", "الدخول بالملابس الرسمية"
+        ];
+
+        let timerInterval;
+        let timeLeft = 60; // وقت اللعبة بالثواني
+
+        function getRandomItem(array) {
+            return array[Math.floor(Math.random() * array.length)];
+        }
+
+        function generateWord(type) {
+            let word = "";
+            let label = "";
+
+            if (type === 'random') {
+                const types = ['movie', 'series', 'play'];
+                type = types[Math.floor(Math.random() * types.length)];
+            }
+
+            switch(type) {
+                case 'movie':
+                    word = getRandomItem(movies);
+                    label = "🎬 فيلم مصري";
+                    break;
+                case 'series':
+                    word = getRandomItem(series);
+                    label = "📺 مسلسل مصري";
+                    break;
+                case 'play':
+                    word = getRandomItem(plays);
+                    label = "🎭 مسرحية مصرية";
+                    break;
+            }
+
+            document.getElementById('category-label').innerText = label;
+            document.getElementById('word-display').innerText = word;
+            
+            // إعادة ضبط الوقت مع كل كلمة جديدة
+            resetTimer();
+        }
+
+        function updateTimerDisplay() {
+            let minutes = Math.floor(timeLeft / 60);
+            let seconds = timeLeft % 60;
+            document.getElementById('timer-display').innerText = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval); // لمنع تداخل المؤقتات
+            timerInterval = setInterval(() => {
+                if (timeLeft > 0) {
+                    timeLeft--;
+                    updateTimerDisplay();
+                } else {
+                    clearInterval(timerInterval);
+                    // صوت تنبيه بسيط أو تغيير اللون عند انتهاء الوقت
+                    document.getElementById('timer-display').style.color = "#ff6b6b";
+                    alert("⏰ انتهى الوقت!");
+                }
+            }, 1000);
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            timeLeft = 60;
+            document.getElementById('timer-display').style.color = "var(--secondary-color)";
+            updateTimerDisplay();
+        }
+    </script>
+</body>
+</html>
