@@ -216,10 +216,10 @@
 
         <div class="difficulty-section">
             <label class="diff-label" id="lbl-easy" onclick="setDifficulty('easy')">
-                <input type="radio" name="difficulty" value="easy"> 🟢 سهل (15ث)
+                <input type="radio" name="difficulty" value="easy"> 🟢 سهل (30ث)
             </label>
             <label class="diff-label active-medium" id="lbl-medium" onclick="setDifficulty('medium')">
-                <input type="radio" name="difficulty" value="medium" checked> 🟡 وسط (30ث)
+                <input type="radio" name="difficulty" value="medium" checked> 🟡 وسط (40ث)
             </label>
             <label class="diff-label" id="lbl-hard" onclick="setDifficulty('hard')">
                 <input type="radio" name="difficulty" value="hard"> 🔴 صعب/قديم (45ث)
@@ -240,13 +240,12 @@
 
         <div class="timer-section">
             <button style="background-color: #fca311;" onclick="startTimer()">▶️ ابدأ</button>
-            <div id="timer-display">00:30</div>
+            <div id="timer-display">00:40</div>
             <button style="background-color: #e63946; color: white;" onclick="resetTimer()">🔄 إعادة</button>
         </div>
     </div>
 
     <script>
-        // داتا مقسمة حسب الصعوبة والزمن
         const database = {
             movie: {
                 easy: ["عسل أسود", "الناظر", "صعيدي في الجامعة الأمريكية", "فول الصين العظيم", "غبي منه فيه", "كدة رضا", "ولاد رزق", "الجزيرة", "البدلة", "نادي الرجال السري", "بوحة", "أسف على الإزعاج", "إكس لارج"],
@@ -266,30 +265,26 @@
         };
 
         let currentDifficulty = 'medium';
-        let TIME_LIMIT = 30;
+        let TIME_LIMIT = 40; // Default for medium
         let timeLeft = TIME_LIMIT;
         let timerInterval;
         let scores = { 1: 0, 2: 0 };
 
-        // تغيير الصعوبة
         function setDifficulty(level) {
             currentDifficulty = level;
             
-            // تحديث ستايل الأزرار
             document.querySelectorAll('.diff-label').forEach(lbl => {
                 lbl.className = 'diff-label';
             });
             document.getElementById('lbl-' + level).classList.add('active-' + level);
 
-            // تحديد الوقت حسب الصعوبة
-            if (level === 'easy') TIME_LIMIT = 15;
-            if (level === 'medium') TIME_LIMIT = 30;
+            if (level === 'easy') TIME_LIMIT = 30;
+            if (level === 'medium') TIME_LIMIT = 40;
             if (level === 'hard') TIME_LIMIT = 45;
 
             resetTimer();
         }
 
-        // تسجيل النقاط
         function updateScore(team, change) {
             scores[team] += change;
             if (scores[team] < 0) scores[team] = 0;
@@ -328,8 +323,10 @@
             const synth = window.speechSynthesis;
             let text = "";
 
-            if (type === '30') text = "إنجز يا كابتن فاضل نص الوقت!";
+            if (type === 'half') text = "إنجز يا كابتن فاضل نص الوقت!";
+            if (type === '30') text = "فاضل نص دقيقة يا بطل!";
             if (type === '15') text = "يا حلاوة.. فاضل خمستاشر ثانية بس!";
+            if (type === '10') text = "يا مسهل.. فاضل عشر ثواني!";
             if (type === '5') text = "خمس ثواني يا بطل.. إخلص!";
             if (type === '0') text = "طوووووط.. الوقت خلص يا فاشل!";
 
@@ -356,13 +353,14 @@
                     timeLeft--;
                     updateTimerDisplay();
 
-                    // تشغيل الأصوات حسب الوقت المتبقي والصعوبة
                     if (TIME_LIMIT === 45) {
                         if (timeLeft === 30) playFunnySound('30');
                         if (timeLeft === 15) playFunnySound('15');
+                    } else if (TIME_LIMIT === 40) {
+                        if (timeLeft === 20) playFunnySound('half');
+                        if (timeLeft === 10) playFunnySound('10');
                     } else if (TIME_LIMIT === 30) {
-                        if (timeLeft === 15) playFunnySound('15');
-                    } else if (TIME_LIMIT === 15) {
+                        if (timeLeft === 15) playFunnySound('half');
                         if (timeLeft === 5) playFunnySound('5');
                     }
 
